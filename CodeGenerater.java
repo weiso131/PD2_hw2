@@ -72,11 +72,10 @@ class mermaid_code {
                 && codesource.charAt(l) == ' '; l++) {
         }
 
-        for (r = l + 1; r < codesource.length() &&
+        for (r = l + 1; r < codesource.length() - 1 &&
                 codesource.charAt(r) != ' ' &&
                 codesource.charAt(r) != '\n' &&
-                codesource.charAt(r) != '{' &&
-                codesource.charAt(r) != '\0'; r++) {
+                codesource.charAt(r) != '{'; r++) {
         }
         return codesource.substring(l, r);
     }
@@ -87,15 +86,38 @@ class mermaid_code {
         for (int i = 1; i < codeSource.length; i++) {
 
             String class_name = "";
+            String type = "";
+            String modifier = "";
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
+                String functionName = "";
+
+                if (codeSource[i].indexOf('+') != -1)
+                    modifier = "+";
+                else
+                    modifier = "-";
                 if (codeSource[i].indexOf(':') != -1) {
                     class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
+                    functionName = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i]);
+                    type = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
+                    System.out.println("class: " + class_name + ", type: " + type + ", name: " + functionName);
                 }
 
             }
             // 是attribute
             else if (codeSource[i].indexOf('+') != -1 || codeSource[i].indexOf('-') != -1) {
+                String attributeName = "";
+
+                if (codeSource[i].indexOf('+') != -1)
+                    modifier = "+";
+                else
+                    modifier = "-";
+                if (codeSource[i].indexOf(':') != -1) {
+                    class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
+                    type = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i]);
+                    attributeName = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
+                    System.out.println("class: " + class_name + ", type: " + type + ", name: " + attributeName);
+                }
                 // System.out.println("is attribute");
             }
 
@@ -111,7 +133,7 @@ class mermaid_code {
                 class_ new_class = new class_(class_name);
                 codeUse.add(new_class);
 
-                System.out.println(new_class.name);
+                System.out.println(new_class.name.length());
 
             } else {
                 // System.out.println("is {");
@@ -130,8 +152,8 @@ class class_ {
         this.name = name;
     }
 
-    public void add_line(String modifier, String member, String name, String set, String get) {
-        line new_line = new line(modifier, member, name, set, get);
+    public void add_line(String modifier, String member, String name, String type, String set, String get) {
+        line new_line = new line(modifier, member, name, type, set, get);
         lines.add(new_line);
     }
 }
@@ -140,13 +162,15 @@ class line {
     String modifier = "";// private or public
     String member = "";// function or attribute
     String name = "";
+    String type = "";
     String set = "";
     String get = "";
 
-    public line(String modifier, String member, String name, String set, String get) {
+    public line(String modifier, String member, String name, String type, String set, String get) {
         this.modifier = modifier;
         this.member = member;
         this.name = name;
+        this.type = type;
         this.set = set;
         this.get = get;
     }
