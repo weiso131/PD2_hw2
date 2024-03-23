@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class CodeGenerater {
     public static void main(String[] args) {
@@ -27,20 +26,20 @@ public class CodeGenerater {
         doc = mermaid.classArray.get(2).writeJava();
         System.out.println(doc);
         // 寫入文件
-        // try {
-        // String output = "Example.java";
-        // String content = "this is going to be written into file";
-        // File file = new File(output);
-        // if (!file.exists()) {
-        // file.createNewFile();
-        // }
-        // try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-        // bw.write(content);
-        // }
-        // System.out.println("Java class has been generated: " + output);
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
+        try {
+            String output = "Example.java";
+            String content = "this is going to be written into file";
+            File file = new File(output);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(content);
+            }
+            System.out.println("Java class has been generated: " + output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
@@ -73,17 +72,16 @@ class mermaid_code {
 
     }
 
-    private String findNameRight(int start, String codesource) {
+    private String findNameRight(int start, String codesource, char stop) {
         int l, r;
         for (l = start; l < codesource.length()
                 && codesource.charAt(l) == ' '; l++) {
         }
 
         for (r = l + 1; r < codesource.length() - 1 &&
-                codesource.charAt(r - 1) != ' ' &&
                 codesource.charAt(r - 1) != ')' &&
-                codesource.charAt(r) != '\n' &&
-                codesource.charAt(r) != '{'; r++) {
+                codesource.charAt(r - 1) != stop &&
+                codesource.charAt(r) != '\n'; r++) {
         }
         return codesource.substring(l, r);
     }
@@ -119,9 +117,9 @@ class mermaid_code {
                     modifier = "-";
                 if (codeSource[i].indexOf(':') != -1) {
                     class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
-                    functionName = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i]);
+                    functionName = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i], '\n');
                     type = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
-                    System.out.println("class: " + class_name + ", type: " + type + ", name: " + functionName);
+
                 }
                 line newLine = new line(modifier, "function", functionName, type);
                 addLine(class_name, newLine);
@@ -137,10 +135,8 @@ class mermaid_code {
                     modifier = "-";
                 if (codeSource[i].indexOf(':') != -1) {
                     class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
-                    type = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i]);
+                    type = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i], ' ');
                     attributeName = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
-                    System.out.println("class: " + class_name + ", type: " + type + ", name: " +
-                            attributeName);
                 }
                 line newLine = new line(modifier, "attribute", attributeName, type);
                 addLine(class_name, newLine);
@@ -154,11 +150,9 @@ class mermaid_code {
             // 是class
             else if (codeSource[i].indexOf("class ") != -1) {
 
-                class_name = findNameRight(codeSource[i].indexOf("class ") + 6, codeSource[i]);
+                class_name = findNameRight(codeSource[i].indexOf("class ") + 6, codeSource[i], ' ');
                 class_ new_class = new class_(class_name);
                 classArray.add(new_class);
-
-                System.out.println(new_class.name.length());
 
             } else {
                 // System.out.println("is {");
