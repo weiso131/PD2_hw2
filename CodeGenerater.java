@@ -40,7 +40,7 @@ public class CodeGenerater {
 
 class mermaid_code {
     String codeContent = new String();
-    ArrayList<class_> codeUse = new ArrayList<class_>();
+    ArrayList<class_> classArray = new ArrayList<class_>();
 
     public mermaid_code(String fileName) {
         try {
@@ -80,6 +80,19 @@ class mermaid_code {
         return codesource.substring(l, r);
     }
 
+    private void addLine(String className, line newLine) {
+
+        for (int i = 0; i < classArray.size(); i++) {
+
+            if (classArray.get(i).name.equals(className)) {
+                classArray.get(i).lines.add(newLine);
+                return;
+            }
+        }
+        System.out.println("class not found");
+
+    }
+
     private void codeSpilt() {
         String[] codeSource = codeContent.split("\n");
 
@@ -102,6 +115,8 @@ class mermaid_code {
                     type = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
                     System.out.println("class: " + class_name + ", type: " + type + ", name: " + functionName);
                 }
+                line newLine = new line(modifier, "function", functionName, type);
+                addLine(class_name, newLine);
 
             }
             // 是attribute
@@ -118,7 +133,8 @@ class mermaid_code {
                     attributeName = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
                     System.out.println("class: " + class_name + ", type: " + type + ", name: " + attributeName);
                 }
-                // System.out.println("is attribute");
+                line newLine = new line(modifier, "attribute", attributeName, type);
+                addLine(class_name, newLine);
             }
 
             // is }
@@ -131,7 +147,7 @@ class mermaid_code {
 
                 class_name = findNameRight(codeSource[i].indexOf("class ") + 6, codeSource[i]);
                 class_ new_class = new class_(class_name);
-                codeUse.add(new_class);
+                classArray.add(new_class);
 
                 System.out.println(new_class.name.length());
 
@@ -152,10 +168,6 @@ class class_ {
         this.name = name;
     }
 
-    public void add_line(String modifier, String member, String name, String type, String set, String get) {
-        line new_line = new line(modifier, member, name, type, set, get);
-        lines.add(new_line);
-    }
 }
 
 class line {
@@ -163,16 +175,13 @@ class line {
     String member = "";// function or attribute
     String name = "";
     String type = "";
-    String set = "";
-    String get = "";
 
-    public line(String modifier, String member, String name, String type, String set, String get) {
+    public line(String modifier, String member, String name, String type) {
         this.modifier = modifier;
         this.member = member;
         this.name = name;
         this.type = type;
-        this.set = set;
-        this.get = get;
+
     }
 
 }
