@@ -20,6 +20,12 @@ public class CodeGenerater {
 
         mermaid_code mermaid = new mermaid_code(fileName);
 
+        String doc = mermaid.classArray.get(0).writeJava();
+        System.out.println(doc);
+        doc = mermaid.classArray.get(1).writeJava();
+        System.out.println(doc);
+        doc = mermaid.classArray.get(2).writeJava();
+        System.out.println(doc);
         // 寫入文件
         // try {
         // String output = "Example.java";
@@ -60,7 +66,8 @@ class mermaid_code {
                 codesource.charAt(r - 1) == ' '; r--) {
         }
         for (l = r - 1; l > 0 &&
-                codesource.charAt(l - 1) != ' '; l--) {
+                codesource.charAt(l - 1) != ' ' &&
+                codesource.charAt(l - 1) != '\t'; l--) {
         }
         return codesource.substring(l, r);
 
@@ -73,7 +80,8 @@ class mermaid_code {
         }
 
         for (r = l + 1; r < codesource.length() - 1 &&
-                codesource.charAt(r) != ' ' &&
+                codesource.charAt(r - 1) != ' ' &&
+                codesource.charAt(r - 1) != ')' &&
                 codesource.charAt(r) != '\n' &&
                 codesource.charAt(r) != '{'; r++) {
         }
@@ -131,7 +139,8 @@ class mermaid_code {
                     class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
                     type = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i]);
                     attributeName = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
-                    System.out.println("class: " + class_name + ", type: " + type + ", name: " + attributeName);
+                    System.out.println("class: " + class_name + ", type: " + type + ", name: " +
+                            attributeName);
                 }
                 line newLine = new line(modifier, "attribute", attributeName, type);
                 addLine(class_name, newLine);
@@ -168,6 +177,15 @@ class class_ {
         this.name = name;
     }
 
+    public String writeJava() {
+        String doc = "class ";
+        doc = doc + name + " {\n";
+        for (int i = 0; i < lines.size(); i++)
+            doc += lines.get(i).write_line();
+        doc = doc + "}";
+        return doc;
+    }
+
 }
 
 class line {
@@ -175,6 +193,8 @@ class line {
     String member = "";// function or attribute
     String name = "";
     String type = "";
+    String set = "";
+    String get = "";
 
     public line(String modifier, String member, String name, String type) {
         this.modifier = modifier;
@@ -182,6 +202,23 @@ class line {
         this.name = name;
         this.type = type;
 
+        if (member.equals("function") && name.indexOf("set") != -1) {
+
+        }
+        if (member.equals("function") && name.indexOf("get") != -1) {
+
+        }
+
+    }
+
+    public String write_line() {
+        String doc = "\t";
+        if (modifier == "+")
+            doc += "public ";
+        else
+            doc += "private ";
+        doc += type + " " + name + ";\n";
+        return doc;
     }
 
 }
