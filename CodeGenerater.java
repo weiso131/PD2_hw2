@@ -57,23 +57,38 @@ class mermaid_code {
         String[] codeSource = codeContent.split("\n");
 
         for (int i = 1; i < codeSource.length; i++) {
-            System.out.println(codeSource[i]);
+            int l, r;
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
-                System.out.println("is function");
+                // System.out.println("is function");
             }
             // 是attribute
             else if (codeSource[i].indexOf('+') != -1 || codeSource[i].indexOf('-') != -1) {
-                System.out.println("is attribute");
+                // System.out.println("is attribute");
             } else if (codeSource[i].indexOf('}') != -1) {
-                System.out.println("is }");
+                // System.out.println("is }");
             }
 
             // 是class
             else if (codeSource[i].indexOf("class ") != -1) {
-                System.out.println("is class");
+
+                for (l = codeSource[i].indexOf("class ") + 6; l < codeSource[i].length()
+                        && codeSource[i].charAt(l) == ' '; l++) {
+                }
+
+                for (r = l + 1; r < codeSource[i].length() &&
+                        codeSource[i].charAt(r) != ' ' &&
+                        codeSource[i].charAt(r) != '\n' &&
+                        codeSource[i].charAt(r) != '{' &&
+                        codeSource[i].charAt(r) != '\0'; r++) {
+                }
+                class_ new_class = new class_(codeSource[i].substring(l, r));
+                codeUse.add(new_class);
+
+                System.out.println(new_class.name);
+
             } else {
-                System.out.println("is {");
+                // System.out.println("is {");
             }
 
         }
