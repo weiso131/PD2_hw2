@@ -21,20 +21,20 @@ public class CodeGenerater {
         mermaid_code mermaid = new mermaid_code(fileName);
 
         // 寫入文件
-        try {
-            String output = "Example.java";
-            String content = "this is going to be written into file";
-            File file = new File(output);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                bw.write(content);
-            }
-            System.out.println("Java class has been generated: " + output);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // try {
+        // String output = "Example.java";
+        // String content = "this is going to be written into file";
+        // File file = new File(output);
+        // if (!file.exists()) {
+        // file.createNewFile();
+        // }
+        // try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+        // bw.write(content);
+        // }
+        // System.out.println("Java class has been generated: " + output);
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
     }
 }
 
@@ -53,36 +53,62 @@ class mermaid_code {
         codeSpilt();
     }
 
+    private String findNameLeft(int start, String codesource) {
+        int l, r;
+
+        for (r = start; r > 0 &&
+                codesource.charAt(r - 1) == ' '; r--) {
+        }
+        for (l = r - 1; l > 0 &&
+                codesource.charAt(l - 1) != ' '; l--) {
+        }
+        return codesource.substring(l, r);
+
+    }
+
+    private String findNameRight(int start, String codesource) {
+        int l, r;
+        for (l = start; l < codesource.length()
+                && codesource.charAt(l) == ' '; l++) {
+        }
+
+        for (r = l + 1; r < codesource.length() &&
+                codesource.charAt(r) != ' ' &&
+                codesource.charAt(r) != '\n' &&
+                codesource.charAt(r) != '{' &&
+                codesource.charAt(r) != '\0'; r++) {
+        }
+        return codesource.substring(l, r);
+    }
+
     private void codeSpilt() {
         String[] codeSource = codeContent.split("\n");
 
         for (int i = 1; i < codeSource.length; i++) {
-            int l, r;
+
+            String class_name = "";
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
-                // System.out.println("is function");
+                if (codeSource[i].indexOf(':') != -1) {
+                    class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
+                }
+
             }
             // 是attribute
             else if (codeSource[i].indexOf('+') != -1 || codeSource[i].indexOf('-') != -1) {
                 // System.out.println("is attribute");
-            } else if (codeSource[i].indexOf('}') != -1) {
+            }
+
+            // is }
+            else if (codeSource[i].indexOf('}') != -1) {
                 // System.out.println("is }");
             }
 
             // 是class
             else if (codeSource[i].indexOf("class ") != -1) {
 
-                for (l = codeSource[i].indexOf("class ") + 6; l < codeSource[i].length()
-                        && codeSource[i].charAt(l) == ' '; l++) {
-                }
-
-                for (r = l + 1; r < codeSource[i].length() &&
-                        codeSource[i].charAt(r) != ' ' &&
-                        codeSource[i].charAt(r) != '\n' &&
-                        codeSource[i].charAt(r) != '{' &&
-                        codeSource[i].charAt(r) != '\0'; r++) {
-                }
-                class_ new_class = new class_(codeSource[i].substring(l, r));
+                class_name = findNameRight(codeSource[i].indexOf("class ") + 6, codeSource[i]);
+                class_ new_class = new class_(class_name);
                 codeUse.add(new_class);
 
                 System.out.println(new_class.name);
