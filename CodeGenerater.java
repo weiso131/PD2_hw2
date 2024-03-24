@@ -207,10 +207,14 @@ class line {
         this.type = type;
 
         if (member.equals("function") && name.indexOf("set") != -1) {
-
+            String set_attr = Utility.findNameRight(' ', '(', name, name.indexOf("set") + 3, 0).toLowerCase();
+            String set_src = Utility.findNameRight(' ', ')', name,
+                    Utility.findRightLimit(' ', name, 0), 0);
+            set = "this." + set_attr + " = " + set_src + ";";
         }
         if (member.equals("function") && name.indexOf("get") != -1) {
-
+            String get_attr = Utility.findNameRight(' ', '(', name, name.indexOf("get") + 3, 0).toLowerCase();
+            get = "return " + get_attr + ";";
         }
 
     }
