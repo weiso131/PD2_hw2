@@ -161,8 +161,6 @@ class mermaid_code {
 
                 class_ new_class = new class_(class_name);
                 classArray.add(new_class);
-                System.out.println(class_name);
-                System.out.println(class_name.length());
 
             } else {
                 // System.out.println("is {");
@@ -225,7 +223,21 @@ class line {
             doc += "public ";
         else
             doc += "private ";
-        doc += type + " " + name + ";\n";
+
+        if (member == "function") {
+            if (set != "") {
+                doc += type + " " + name + "{\n";
+                doc += "\t\t" + set + "\n";
+                doc += "\t}\n";
+            } else if (get != "") {
+                doc += type + " " + name + "{\n";
+                doc += "\t\t" + get + "\n";
+                doc += "\t}\n";
+            } else
+                doc += type + " " + name + "{;}\n";
+
+        } else
+            doc += type + " " + name + ";\n";
         return doc;
     }
 
