@@ -15,30 +15,18 @@ public class CodeGenerater {
             return;
         }
         String fileName = args[0];
-        System.out.println("File name: " + fileName);
+        System.out.println("File name: " + fileName + ".java");
 
         mermaid_code mermaid = new mermaid_code(fileName);
         String doc = "";
         for (int i = 0; i < mermaid.classArray.size(); i++) {
             doc = mermaid.classArray.get(i).writeJava();
-            System.out.println(doc);
+
+            Utility.write_doc(mermaid.classArray.get(i).name, doc);
         }
 
         // 寫入文件
-        try {
-            String output = "Example.java";
-            String content = "this is going to be written into file";
-            File file = new File(output);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                bw.write(content);
-            }
-            System.out.println("Java class has been generated: " + output);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 }
 
@@ -68,6 +56,22 @@ class Utility {
         for (; end < codesource.length() && codesource.charAt(end) != limit; end++) {
         }
         return end;
+    }
+
+    public static void write_doc(String class_name, String content) {
+        try {
+
+            File file = new File("test/" + class_name);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(content);
+            }
+            System.out.println("Java class has been generated: " + class_name);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
