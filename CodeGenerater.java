@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import java.util.HashMap;
+
 public class CodeGenerater {
     public static void main(String[] args) {
         // 讀取文件
@@ -61,7 +63,7 @@ class Utility {
     public static void write_doc(String class_name, String content) {
         try {
 
-            File file = new File("test/" + class_name);
+            File file = new File("test/" + class_name + ".java");
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -211,28 +213,37 @@ class line {
     String type = "";
     String set = "";
     String get = "";
+    HashMap<String, String> typeReturn = new HashMap<String, String>();
 
     public line(String modifier, String member, String name, String type) {
         this.modifier = modifier;
         this.member = member;
         this.name = name;
         this.type = type;
+        typeReturn.put("void", " {;}\n");
+        typeReturn.put("int", " {return 0;}\n");
+        typeReturn.put("String", " {return \"\";}\n");
+        typeReturn.put("boolean", " {return false;}\n");
 
         if (member.equals("function") && name.indexOf("set") != -1) {
-            String set_attr = Utility.findNameRight(' ', '(', name, name.indexOf("set") + 3, 0).toLowerCase();
+            char[] set_attr_c = Utility.findNameRight(' ', '(', name, name.indexOf("set") + 3, 0).toCharArray();
+            set_attr_c[0] = Character.toLowerCase(set_attr_c[0]);
+            String set_attr = new String(set_attr_c);
             String set_src = Utility.findNameRight(' ', ')', name,
                     Utility.findRightLimit(' ', name, 0), 0);
             set = "this." + set_attr + " = " + set_src + ";";
         }
         if (member.equals("function") && name.indexOf("get") != -1) {
-            String get_attr = Utility.findNameRight(' ', '(', name, name.indexOf("get") + 3, 0).toLowerCase();
+            char[] get_attr_c = Utility.findNameRight(' ', '(', name, name.indexOf("get") + 3, 0).toCharArray();
+            get_attr_c[0] = Character.toLowerCase(get_attr_c[0]);
+            String get_attr = new String(get_attr_c);
             get = "return " + get_attr + ";";
         }
 
     }
 
     public String write_line() {
-        String doc = "\t";
+        String doc = "    ";
         if (modifier == "+")
             doc += "public ";
         else
@@ -241,14 +252,14 @@ class line {
         if (member == "function") {
             if (set != "") {
                 doc += type + " " + name + " {\n";
-                doc += "\t\t" + set + "\n";
-                doc += "\t}\n";
+                doc += "        " + set + "\n";
+                doc += "    }\n";
             } else if (get != "") {
                 doc += type + " " + name + " {\n";
-                doc += "\t\t" + get + "\n";
-                doc += "\t}\n";
+                doc += "        " + get + "\n";
+                doc += "    }\n";
             } else
-                doc += type + " " + name + " {;}\n";
+                doc += type + " " + name + typeReturn.get(type);
 
         } else
             doc += type + " " + name + ";\n";
