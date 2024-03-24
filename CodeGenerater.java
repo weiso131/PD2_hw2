@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import java.lang.Math.*;
+
 public class CodeGenerater {
     public static void main(String[] args) {
         // 讀取文件
@@ -18,13 +20,12 @@ public class CodeGenerater {
         System.out.println("File name: " + fileName);
 
         mermaid_code mermaid = new mermaid_code(fileName);
+        String doc = "";
+        for (int i = 0; i < mermaid.classArray.size(); i++) {
+            doc = mermaid.classArray.get(i).writeJava();
+            System.out.println(doc);
+        }
 
-        String doc = mermaid.classArray.get(0).writeJava();
-        System.out.println(doc);
-        doc = mermaid.classArray.get(1).writeJava();
-        System.out.println(doc);
-        doc = mermaid.classArray.get(2).writeJava();
-        System.out.println(doc);
         // 寫入文件
         try {
             String output = "Example.java";
@@ -43,6 +44,35 @@ public class CodeGenerater {
     }
 }
 
+class Utility {
+    public static String findNameRight(char not, char limit, String codesource, int start, int take) {
+
+        // take為1代表取limit的字元
+        // take為0代表不取limit字元
+        // take為1是為了躲避每個行尾一個怪怪的字元
+        int l = findRightNot(not, codesource, start);
+        int r = findRightLimit(limit, codesource, l);
+
+        return codesource.substring(l, Math.min(codesource.length(), r + take));
+    }
+
+    public static int findRightNot(char not, String codesource, int start) {
+        // 回傳第一個不是limit的位置
+        int end = start;
+        for (; end < codesource.length() && codesource.charAt(end) == not; end++) {
+        }
+        return end;
+    }
+
+    public static int findRightLimit(char limit, String codesource, int start) {
+        // 回傳第一個找到的limit位置
+        int end = start;
+        for (; end < codesource.length() && codesource.charAt(end) != limit; end++) {
+        }
+        return end;
+    }
+}
+
 class mermaid_code {
     String codeContent = new String();
     ArrayList<class_> classArray = new ArrayList<class_>();
@@ -56,34 +86,6 @@ class mermaid_code {
             return;
         }
         codeSpilt();
-    }
-
-    private String findNameLeft(int start, String codesource) {
-        int l, r;
-
-        for (r = start; r > 0 &&
-                codesource.charAt(r - 1) == ' '; r--) {
-        }
-        for (l = r - 1; l > 0 &&
-                codesource.charAt(l - 1) != ' ' &&
-                codesource.charAt(l - 1) != '\t'; l--) {
-        }
-        return codesource.substring(l, r);
-
-    }
-
-    private String findNameRight(int start, String codesource, char stop) {
-        int l, r;
-        for (l = start; l < codesource.length()
-                && codesource.charAt(l) == ' '; l++) {
-        }
-
-        for (r = l + 1; r < codesource.length() - 1 &&
-                codesource.charAt(r - 1) != ')' &&
-                codesource.charAt(r - 1) != stop &&
-                codesource.charAt(r) != '\n'; r++) {
-        }
-        return codesource.substring(l, r);
     }
 
     private void addLine(String className, line newLine) {
@@ -107,6 +109,9 @@ class mermaid_code {
             String class_name = "";
             String type = "";
             String modifier = "";
+            codeSource[i] = codeSource[i].replace('\t', ' ');
+            codeSource[i] = codeSource[i].replace('\n', ' ');
+            codeSource[i] = codeSource[i].replace('\0', ' ');
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
                 String functionName = "";
@@ -116,9 +121,10 @@ class mermaid_code {
                 else
                     modifier = "-";
                 if (codeSource[i].indexOf(':') != -1) {
-                    class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
-                    functionName = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i], '\n');
-                    type = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
+                    class_name = Utility.findNameRight(' ', ' ', codeSource[i], 0, 0);
+                    functionName = Utility.findNameRight(' ', ')', codeSource[i], codeSource[i].indexOf(modifier) + 1,
+                            1);
+                    type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(')') + 1, -1);
 
                 }
                 line newLine = new line(modifier, "function", functionName, type);
@@ -134,9 +140,11 @@ class mermaid_code {
                 else
                     modifier = "-";
                 if (codeSource[i].indexOf(':') != -1) {
-                    class_name = findNameLeft(codeSource[i].indexOf(':') - 1, codeSource[i]);
-                    type = findNameRight(codeSource[i].indexOf(modifier) + 1, codeSource[i], ' ');
-                    attributeName = findNameLeft(codeSource[i].length() - 1, codeSource[i]);
+                    class_name = Utility.findNameRight(' ', ' ', codeSource[i], 0, 0);
+                    type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(modifier) + 1, 0);
+                    attributeName = Utility.findNameRight(' ', ' ', codeSource[i],
+                            codeSource[i].indexOf(type + " ") + type.length(), -1);
+                    ;
                 }
                 line newLine = new line(modifier, "attribute", attributeName, type);
                 addLine(class_name, newLine);
@@ -149,10 +157,12 @@ class mermaid_code {
 
             // 是class
             else if (codeSource[i].indexOf("class ") != -1) {
+                class_name = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf("class ") + 6, -1);
 
-                class_name = findNameRight(codeSource[i].indexOf("class ") + 6, codeSource[i], ' ');
                 class_ new_class = new class_(class_name);
                 classArray.add(new_class);
+                System.out.println(class_name);
+                System.out.println(class_name.length());
 
             } else {
                 // System.out.println("is {");
