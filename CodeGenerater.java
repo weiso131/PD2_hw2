@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import java.lang.Math.*;
-
 public class CodeGenerater {
     public static void main(String[] args) {
         // 讀取文件
@@ -53,7 +51,7 @@ class Utility {
         int l = findRightNot(not, codesource, start);
         int r = findRightLimit(limit, codesource, l);
 
-        return codesource.substring(l, Math.min(codesource.length(), r + take));
+        return codesource.substring(l, r + take);
     }
 
     public static int findRightNot(char not, String codesource, int start) {
@@ -101,14 +99,26 @@ class mermaid_code {
 
     }
 
+    private int findClassArray(String className) {
+        int i = 0;
+        for (; i < classArray.size() && classArray.get(i).name.equals(className) != true; i++) {
+        }
+
+        return i;
+    }
+
     private void codeSpilt() {
         String[] codeSource = codeContent.split("\n");
-
+        String class_name = "";
+        String type = "";
+        String modifier = "";
+        String last_class = "";
+        String define_class = "";
         for (int i = 1; i < codeSource.length; i++) {
-
-            String class_name = "";
-            String type = "";
-            String modifier = "";
+            if (codeSource[i].indexOf('+') != -1)
+                modifier = "+";
+            else
+                modifier = "-";
             codeSource[i] = codeSource[i].replace('\t', ' ');
             codeSource[i] = codeSource[i].replace('\n', ' ');
             codeSource[i] = codeSource[i].replace('\0', ' ');
@@ -116,17 +126,14 @@ class mermaid_code {
             if (codeSource[i].indexOf('(') != -1) {
                 String functionName = "";
 
-                if (codeSource[i].indexOf('+') != -1)
-                    modifier = "+";
-                else
-                    modifier = "-";
-                if (codeSource[i].indexOf(':') != -1) {
+                if (codeSource[i].indexOf(':') != -1)
                     class_name = Utility.findNameRight(' ', ' ', codeSource[i], 0, 0);
-                    functionName = Utility.findNameRight(' ', ')', codeSource[i], codeSource[i].indexOf(modifier) + 1,
-                            1);
-                    type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(')') + 1, -1);
+                else
+                    class_name = define_class;
+                functionName = Utility.findNameRight(' ', ')',
+                        codeSource[i], codeSource[i].indexOf(modifier) + 1, 1);
+                type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(')') + 1, -1);
 
-                }
                 line newLine = new line(modifier, "function", functionName, type);
                 addLine(class_name, newLine);
 
@@ -135,35 +142,38 @@ class mermaid_code {
             else if (codeSource[i].indexOf('+') != -1 || codeSource[i].indexOf('-') != -1) {
                 String attributeName = "";
 
-                if (codeSource[i].indexOf('+') != -1)
-                    modifier = "+";
-                else
-                    modifier = "-";
-                if (codeSource[i].indexOf(':') != -1) {
+                if (codeSource[i].indexOf(':') != -1)
                     class_name = Utility.findNameRight(' ', ' ', codeSource[i], 0, 0);
-                    type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(modifier) + 1, 0);
-                    attributeName = Utility.findNameRight(' ', ' ', codeSource[i],
-                            codeSource[i].indexOf(type + " ") + type.length(), -1);
-                    ;
-                }
+                else
+                    class_name = define_class;
+                type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(modifier) + 1, 0);
+                attributeName = Utility.findNameRight(' ', ' ', codeSource[i],
+                        codeSource[i].indexOf(type + " ") + type.length(), -1);
                 line newLine = new line(modifier, "attribute", attributeName, type);
                 addLine(class_name, newLine);
             }
 
             // is }
             else if (codeSource[i].indexOf('}') != -1) {
-                // System.out.println("is }");
+                define_class = "";
             }
 
             // 是class
             else if (codeSource[i].indexOf("class ") != -1) {
-                class_name = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf("class ") + 6, -1);
+                if (codeSource[i].indexOf("{") != -1)
+                    class_name = Utility.findNameRight(' ', ' ', codeSource[i],
+                            codeSource[i].indexOf("class ") + 6, 0);
+                else
+                    class_name = Utility.findNameRight(' ', ' ', codeSource[i],
+                            codeSource[i].indexOf("class ") + 6, -1);
 
                 class_ new_class = new class_(class_name);
-                classArray.add(new_class);
-
-            } else {
-                // System.out.println("is {");
+                last_class = class_name;
+                if (findClassArray(class_name) == classArray.size())
+                    classArray.add(new_class);
+            }
+            if (codeSource[i].indexOf("{") != -1 && codeSource[i].indexOf("}") == -1) {
+                define_class = last_class;
             }
 
         }
