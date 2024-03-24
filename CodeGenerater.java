@@ -194,7 +194,7 @@ class class_ {
     }
 
     public String writeJava() {
-        String doc = "class ";
+        String doc = "public class ";
         doc = doc + name + " {\n";
         for (int i = 0; i < lines.size(); i++)
             doc += lines.get(i).write_line();
@@ -240,15 +240,15 @@ class line {
 
         if (member == "function") {
             if (set != "") {
-                doc += type + " " + name + "{\n";
+                doc += type + " " + name + " {\n";
                 doc += "\t\t" + set + "\n";
                 doc += "\t}\n";
             } else if (get != "") {
-                doc += type + " " + name + "{\n";
+                doc += type + " " + name + " {\n";
                 doc += "\t\t" + get + "\n";
                 doc += "\t}\n";
             } else
-                doc += type + " " + name + "{;}\n";
+                doc += type + " " + name + " {;}\n";
 
         } else
             doc += type + " " + name + ";\n";
