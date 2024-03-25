@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import java.util.HashMap;
 
-public class CodeGenerater {
+public class CodeGenerator {
     public static void main(String[] args) {
         // 讀取文件
         if (args.length == 0) {
@@ -62,7 +62,7 @@ class Utility {
 
     public static void write_doc(String class_name, String content) {
         try {
-
+            System.out.println(content);
             File file = new File("test/" + class_name + ".java");
             if (!file.exists()) {
                 file.createNewFile();
@@ -120,7 +120,7 @@ class mermaid_code {
         String modifier = "";
         String last_class = "";
         String define_class = "";
-        for (int i = 1; i < codeSource.length; i++) {
+        for (int i = 0; i < codeSource.length; i++) {
             if (codeSource[i].indexOf('+') != -1)
                 modifier = "+";
             else
@@ -128,6 +128,7 @@ class mermaid_code {
             codeSource[i] = codeSource[i].replace('\t', ' ');
             codeSource[i] = codeSource[i].replace('\n', ' ');
             codeSource[i] = codeSource[i].replace('\0', ' ');
+            codeSource[i] = codeSource[i].replace('\r', ' ');
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
                 String functionName = "";
@@ -138,7 +139,7 @@ class mermaid_code {
                     class_name = define_class;
                 functionName = Utility.findNameRight(' ', ')',
                         codeSource[i], codeSource[i].indexOf(modifier) + 1, 1);
-                type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(')') + 1, -1);
+                type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(')') + 1, 0);
 
                 line newLine = new line(modifier, "function", functionName, type);
                 addLine(class_name, newLine);
@@ -154,7 +155,7 @@ class mermaid_code {
                     class_name = define_class;
                 type = Utility.findNameRight(' ', ' ', codeSource[i], codeSource[i].indexOf(modifier) + 1, 0);
                 attributeName = Utility.findNameRight(' ', ' ', codeSource[i],
-                        codeSource[i].indexOf(type + " ") + type.length(), -1);
+                        codeSource[i].indexOf(type + " ") + type.length(), 0);
                 line newLine = new line(modifier, "attribute", attributeName, type);
                 addLine(class_name, newLine);
             }
@@ -171,7 +172,7 @@ class mermaid_code {
                             codeSource[i].indexOf("class ") + 6, 0);
                 else
                     class_name = Utility.findNameRight(' ', ' ', codeSource[i],
-                            codeSource[i].indexOf("class ") + 6, -1);
+                            codeSource[i].indexOf("class ") + 6, 0);
 
                 class_ new_class = new class_(class_name);
                 last_class = class_name;
@@ -225,19 +226,24 @@ class line {
         typeReturn.put("String", " {return \"\";}\n");
         typeReturn.put("boolean", " {return false;}\n");
 
-        if (member.equals("function") && name.indexOf("set") != -1) {
-            char[] set_attr_c = Utility.findNameRight(' ', '(', name, name.indexOf("set") + 3, 0).toCharArray();
-            set_attr_c[0] = Character.toLowerCase(set_attr_c[0]);
-            String set_attr = new String(set_attr_c);
-            String set_src = Utility.findNameRight(' ', ')', name,
-                    Utility.findRightLimit(' ', name, 0), 0);
-            set = "this." + set_attr + " = " + set_src + ";";
-        }
-        if (member.equals("function") && name.indexOf("get") != -1) {
-            char[] get_attr_c = Utility.findNameRight(' ', '(', name, name.indexOf("get") + 3, 0).toCharArray();
-            get_attr_c[0] = Character.toLowerCase(get_attr_c[0]);
-            String get_attr = new String(get_attr_c);
-            get = "return " + get_attr + ";";
+        if (member.equals("function")) {
+            char[] attr_c = Utility.findNameRight(' ', '(', name, 3, 0).toCharArray();
+            if (name.substring(0, 3).equals("set")
+                    && Character.isUpperCase(attr_c[0])) {
+
+                attr_c[0] = Character.toLowerCase(attr_c[0]);
+                String set_attr = new String(attr_c);
+                String set_src = Utility.findNameRight(' ', ')', name,
+                        Utility.findRightLimit(' ', name, 0), 0);
+                set = "this." + set_attr + " = " + set_src + ";";
+            }
+            if (name.substring(0, 3).equals("get")
+                    && Character.isUpperCase(attr_c[0])) {
+
+                attr_c[0] = Character.toLowerCase(attr_c[0]);
+                String get_attr = new String(attr_c);
+                get = "return " + get_attr + ";";
+            }
         }
 
     }
