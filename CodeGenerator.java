@@ -133,7 +133,7 @@ class mermaid_code {
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
                 codeSource[i] = codeSource[i].replaceAll("\\s+", " ");
-
+                codeSource[i] = codeSource[i].replace(" (", "(");
                 String functionName = "";
 
                 if (codeSource[i].indexOf(':') != -1)
@@ -229,35 +229,31 @@ class line {
         typeReturn.put("String", " {return \"\";}\n");
         typeReturn.put("boolean", " {return false;}\n");
 
-        if (member.equals("function")) {
+        if (member.equals("function"))
+            initFunction();
 
-            // name clean
-            references = findValue(name);
-            String fname = Utility.findNameRight(' ', '(', name, 0, 1);
-            for (int i = 0; i < references.size(); i++) {
-                fname += references.get(i).write_line();
-                if (i != references.size() - 1)
-                    fname += ", ";
-            }
-            name = fname + ")";
+    }
 
-            char[] attr_c = Utility.findNameRight(' ', '(', name, 3, 0).toCharArray();
-            if (name.substring(0, 3).equals("set")
-                    && Character.isUpperCase(attr_c[0])) {
+    private void initFunction() {
+        // 處理function的reference
+        references = findValue(name);
+        String fname = Utility.findNameRight(' ', '(', name, 0, 1);
+        for (int i = 0; i < references.size(); i++) {
+            fname += references.get(i).write_line();
+            if (i != references.size() - 1)
+                fname += ", ";
+        }
+        this.name = fname + ")";
+        // System.out.println(this.name);
+        char[] attr_c = Utility.findNameRight(' ', '(', name, 3, 0).toCharArray();
 
-                attr_c[0] = Character.toLowerCase(attr_c[0]);
-                String set_attr = new String(attr_c);
-                String set_src = Utility.findNameRight(' ', ')', name,
-                        Utility.findRightLimit(' ', name, 0), 0);
-                setget = "this." + set_attr + " = " + set_src + ";";
-            }
-            if (name.substring(0, 3).equals("get")
-                    && Character.isUpperCase(attr_c[0])) {
-
-                attr_c[0] = Character.toLowerCase(attr_c[0]);
-                String get_attr = new String(attr_c);
-                setget = "return " + get_attr + ";";
-            }
+        if (attr_c.length != 0 && Character.isUpperCase(attr_c[0])) {
+            attr_c[0] = Character.toLowerCase(attr_c[0]);
+            String attr = new String(attr_c);
+            if (name.substring(0, 3).equals("set"))
+                setget = "this." + attr + " = " + references.get(0).name + ";";
+            else if (name.substring(0, 3).equals("get"))
+                setget = "return " + attr + ";";
         }
 
     }
@@ -276,7 +272,6 @@ class line {
                 doc += "    }\n";
             } else
                 doc += type + " " + name + typeReturn.get(type);
-
         } else
             doc += type + " " + name + ";\n";
         return doc;
@@ -307,6 +302,7 @@ class reference extends line {
 
     @Override
     public String write_line() {
+
         return type + " " + name;
     }
 }
