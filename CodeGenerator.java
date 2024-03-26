@@ -8,6 +8,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import java.util.HashMap;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class CodeGenerator {
     public static void main(String[] args) {
@@ -62,7 +64,7 @@ class Utility {
 
     public static void write_doc(String class_name, String content) {
         try {
-            System.out.println(content);
+
             File file = new File(class_name + ".java");
             if (!file.exists()) {
                 file.createNewFile();
@@ -131,9 +133,7 @@ class mermaid_code {
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
                 codeSource[i] = codeSource[i].replaceAll("\\s+", " ");
-                codeSource[i] = codeSource[i].replace(" )", ")");
-                codeSource[i] = codeSource[i].replace(" (", "(");
-                codeSource[i] = codeSource[i].replace(" ,", ",");
+
                 String functionName = "";
 
                 if (codeSource[i].indexOf(':') != -1)
@@ -215,8 +215,8 @@ class line {
     String member = "";// function or attribute
     String name = "";
     String type = "";
-    String set = "";
-    String get = "";
+    String setget = "";
+    ArrayList<reference> references = new ArrayList<reference>();
     HashMap<String, String> typeReturn = new HashMap<String, String>();
 
     public line(String modifier, String member, String name, String type) {
@@ -230,6 +230,17 @@ class line {
         typeReturn.put("boolean", " {return false;}\n");
 
         if (member.equals("function")) {
+
+            // name clean
+            references = findValue(name);
+            String fname = Utility.findNameRight(' ', '(', name, 0, 1);
+            for (int i = 0; i < references.size(); i++) {
+                fname += references.get(i).write_line();
+                if (i != references.size() - 1)
+                    fname += ", ";
+            }
+            name = fname + ")";
+
             char[] attr_c = Utility.findNameRight(' ', '(', name, 3, 0).toCharArray();
             if (name.substring(0, 3).equals("set")
                     && Character.isUpperCase(attr_c[0])) {
@@ -238,14 +249,14 @@ class line {
                 String set_attr = new String(attr_c);
                 String set_src = Utility.findNameRight(' ', ')', name,
                         Utility.findRightLimit(' ', name, 0), 0);
-                set = "this." + set_attr + " = " + set_src + ";";
+                setget = "this." + set_attr + " = " + set_src + ";";
             }
             if (name.substring(0, 3).equals("get")
                     && Character.isUpperCase(attr_c[0])) {
 
                 attr_c[0] = Character.toLowerCase(attr_c[0]);
                 String get_attr = new String(attr_c);
-                get = "return " + get_attr + ";";
+                setget = "return " + get_attr + ";";
             }
         }
 
@@ -259,13 +270,9 @@ class line {
             doc += "private ";
 
         if (member == "function") {
-            if (set != "") {
+            if (setget != "") {
                 doc += type + " " + name + " {\n";
-                doc += "        " + set + "\n";
-                doc += "    }\n";
-            } else if (get != "") {
-                doc += type + " " + name + " {\n";
-                doc += "        " + get + "\n";
+                doc += "        " + setget + "\n";
                 doc += "    }\n";
             } else
                 doc += type + " " + name + typeReturn.get(type);
@@ -275,4 +282,31 @@ class line {
         return doc;
     }
 
+    private ArrayList<reference> findValue(String text) {
+
+        String regex = "[a-zA-Z]+(\\[\\])?\s[a-zA-Z_$][a-zA-Z_$0-9]*";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+        ArrayList<reference> references = new ArrayList<reference>();
+        while (matcher.find()) {
+            String valueType = Utility.findNameRight(' ', ' ', matcher.group(),
+                    0, 0);
+            String valueName = Utility.findNameRight(' ', ' ', matcher.group(),
+                    Utility.findRightLimit(' ', matcher.group(), 0), 0);
+            references.add(new reference(valueName, valueType));
+        }
+        return references;
+    }
+
+}
+
+class reference extends line {
+    public reference(String name, String type) {
+        super("", "", name, type);
+    }
+
+    @Override
+    public String write_line() {
+        return type + " " + name;
+    }
 }
