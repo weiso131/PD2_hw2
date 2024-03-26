@@ -63,7 +63,7 @@ class Utility {
     public static void write_doc(String class_name, String content) {
         try {
             System.out.println(content);
-            File file = new File("test/" + class_name + ".java");
+            File file = new File(class_name + ".java");
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -126,11 +126,14 @@ class mermaid_code {
             else
                 modifier = "-";
             codeSource[i] = codeSource[i].replace('\t', ' ');
-            codeSource[i] = codeSource[i].replace('\n', ' ');
-            codeSource[i] = codeSource[i].replace('\0', ' ');
             codeSource[i] = codeSource[i].replace('\r', ' ');
+
             // 是function
             if (codeSource[i].indexOf('(') != -1) {
+                codeSource[i] = codeSource[i].replaceAll("\\s+", " ");
+                codeSource[i] = codeSource[i].replace(" )", ")");
+                codeSource[i] = codeSource[i].replace(" (", "(");
+                codeSource[i] = codeSource[i].replace(" ,", ",");
                 String functionName = "";
 
                 if (codeSource[i].indexOf(':') != -1)
