@@ -224,7 +224,10 @@ class line {
         this.member = member;
         this.name = name;
         this.type = type;
+        if (type == "")
+            this.type = "void";
         typeReturn.put("void", " {;}\n");
+
         typeReturn.put("int", " {return 0;}\n");
         typeReturn.put("String", " {return \"\";}\n");
         typeReturn.put("boolean", " {return false;}\n");
