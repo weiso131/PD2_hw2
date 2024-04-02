@@ -200,6 +200,12 @@ class class_ {
     }
 
     public String writeJava() {
+
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).member.equals("function"))
+                lines.get(i).initFunction(lines);
+        }
+
         String doc = "public class ";
         doc = doc + name + " {\n";
         for (int i = 0; i < lines.size(); i++)
@@ -232,12 +238,9 @@ class line {
         typeReturn.put("String", " {return \"\";}\n");
         typeReturn.put("boolean", " {return false;}\n");
 
-        if (member.equals("function"))
-            initFunction();
-
     }
 
-    private void initFunction() {
+    public void initFunction(ArrayList<line> lines) {
         // 處理function的reference
         references = findValue(name);
         String fname = Utility.findNameRight(' ', '(', name, 0, 1);
@@ -255,8 +258,17 @@ class line {
             String attr = new String(attr_c);
             if (name.substring(0, 3).equals("set"))
                 setget = "this." + attr + " = " + references.get(0).name + ";";
-            else if (name.substring(0, 3).equals("get"))
-                setget = "return " + attr + ";";
+            else if (name.substring(0, 3).equals("get")) {
+                for (int i = 0; i < lines.size(); i++) {
+
+                    if (lines.get(i).member == "attribute" && lines.get(i).name.equals(attr)) {
+
+                        setget = "return " + attr + ";";
+                        return;
+                    }
+                }
+            }
+
         }
 
     }
